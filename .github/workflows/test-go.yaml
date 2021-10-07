@@ -1,0 +1,53 @@
+name: Go Test
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    env:
+      GOPATH: ${{ github.workspace }}/go
+    defaults:
+      run:
+        working-directory: ${{ env.GOPATH }}/src/github.com/kubeflow/training-operator
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          path: ${{ env.GOPATH }}/src/github.com/kubeflow/training-operator
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.14
+
+      # Verify that go.mod and go.sum is synchronized
+      - name: Check Go modules
+        run: |
+          go mod tidy
+          git add go.*
+          git diff --cached --exit-code || echo "Please run "go mod tidy" to sync Go modules" && exit1;
+      - name: Check manifests
+        run: |
+          make manifests
+          git add manifests/base/crds
+          git diff --cached --exit-code || echo "Please run "make manifests" to generate manifests" && exit1;
+      - name: Check auto-generated codes
+        run: |
+          make generate
+          git add pkg/apis
+          git diff --cached --exit-code || echo "Please run "make generate" to generate go codes" && exit1;
+          fi;
+      - name: Run Go test
+        run: |
+          GO111MODULE="on" go mod vendor
+          make test
+      - name: Coveralls report
+        uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: coverage.out
+          working-directory: ${{ env.GOPATH }}/src/github.com/kubeflow/katib
