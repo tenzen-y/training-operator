@@ -1,6 +1,6 @@
 name: integration test
 on:
-  - pull_request
+  - push
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -68,32 +68,31 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1.3.0
-        with:
-          node_image: kindest/node:${{ matrix.kubernetes-version }}
-          cluster_name: training-operator-cluster
-          kubectl_version: ${{ matrix.kubernetes-version }}
-
-      - name: Build training-operator
-        run: |
-          ./scripts/gha/build-image.sh
-        env:
-          TRAINING_CI_IMAGE: kubeflowtraining/training-operator:test
-
-      - name: Deploy training operator
-        run: |
-          ./scripts/gha/setup-training-operator.sh
-        env:
-          KIND_CLUSTER: training-operator-cluster
-          TRAINING_CI_IMAGE: kubeflowtraining/training-operator:test
-          GANG_SCHEDULER_NAME: ${{ matrix.gang-scheduler-name }}
-          KUBERNETES_VERSION: ${{ matrix.kubernetes-version }}
+#      - name: Create k8s Kind Cluster
+#        uses: helm/kind-action@v1.3.0
+#        with:
+#          node_image: kindest/node:${{ matrix.kubernetes-version }}
+#          cluster_name: training-operator-cluster
+#          kubectl_version: ${{ matrix.kubernetes-version }}
+#
+#      - name: Build training-operator
+#        run: |
+#          ./scripts/gha/build-image.sh
+#        env:
+#          TRAINING_CI_IMAGE: kubeflowtraining/training-operator:test
+#
+#      - name: Deploy training operator
+#        run: |
+#          ./scripts/gha/setup-training-operator.sh
+#        env:
+#          KIND_CLUSTER: training-operator-cluster
+#          TRAINING_CI_IMAGE: kubeflowtraining/training-operator:test
+#          GANG_SCHEDULER_NAME: ${{ matrix.gang-scheduler-name }}
+#          KUBERNETES_VERSION: ${{ matrix.kubernetes-version }}
 
       - name: Run tests
         run: |
-          pip install pytest
-          python3 -m pip install -e sdk/python; pytest sdk/python/test --log-cli-level=info --namespace=default
+          exit 1
         env:
           GANG_SCHEDULER_NAME: ${{ matrix.gang-scheduler-name }}
 
