@@ -205,6 +205,19 @@ type RunPolicy struct {
 	// SchedulingPolicy defines the policy related to scheduling, e.g. gang-scheduling
 	// +optional
 	SchedulingPolicy *SchedulingPolicy `json:"schedulingPolicy,omitempty"`
+
+	// suspend specifies whether the Job controller should create Pods or not.
+	// If a Job is created with suspend set to true, no Pods are created by
+	// the Job controller. If a Job is suspended after creation (i.e. the
+	// flag goes from false to true), the Job controller will delete all
+	// active Pods and PodGroups associated with this Job.
+	// Users must design their workload to gracefully handle this.
+	// Suspending a Job will reset the StartTime field of the Job.
+	//
+	// Defaults to false.
+	// +kubebuilder:default:=false
+	// +optional
+	Suspend *bool `json:"suspend,omitempty"`
 }
 
 // SchedulingPolicy encapsulates various scheduling policies of the distributed training
